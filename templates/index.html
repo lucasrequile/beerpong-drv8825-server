@@ -14,6 +14,7 @@
     />
     <!-- MDB -->
     <link
+        id="theme"
         href="{{ url_for('static', filename='css/mdb.min.css') }}"
         rel="stylesheet"
     />
@@ -28,13 +29,11 @@
           justify-content: center;
           align-items: center;
           height: 100vh;
-          background-color: #F4F4F4;
         }
     
         .card {
-          margin: 10px;
+          margin-top: 10px;
           padding: 30px;
-          background-color: #FFFFFF;
           border-radius: 10px;
           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.158);
         }
@@ -53,6 +52,7 @@
           <div class="col">
             <div class="card">
               <h2 class="text-center mb-3">Beerpong: mission control</h2>
+              <button class="btn btn-secondary" onclick="toggleTheme()">Toggle dark mode</button>
               <div class="btn-group-vertical">
           
                 <button type="button" id="button1" class="btn btn-primary" onclick="move_motor_1and2()">Move Both Motors 1 and 2 {{ millimeter1 }} mm</button>
@@ -136,10 +136,32 @@
                     </div>
                   </div>
                   <div class="text-center">
-                    <div class="btn-group">
-                      <button type="button" class="btn btn-primary mt-3" onclick="customMotor12()">Send to motor 1 & 2</button>
-                      <button type="button" class="btn btn-primary mt-3" onclick="customMotor3()">Send to motor 3</button>
-                      <button type="button" class="btn btn-primary mt-3" onclick="customMotor4()">Send to motor 4</button>
+                    <div class="btn-group mt-3">
+                      <button type="button" class="btn btn-primary" onclick="customMotor12()">Send to motor 1 & 2</button>
+                      <button type="button" class="btn btn-primary" onclick="customMotor3()">Send to motor 3</button>
+                      <button type="button" class="btn btn-primary" onclick="customMotor4()">Send to motor 4</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="accordion mt-3" id="dangerZone">
+                  <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingOne">
+                      <button
+                        class="accordion-button collapsed"
+                        type="button"
+                        data-mdb-toggle="collapse"
+                        data-mdb-target="#collapseOne"
+                        aria-expanded="false"
+                        aria-controls="collapseOne"
+                      >
+                        DANGER ZONE
+                      </button>
+                    </h2>
+                    <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-mdb-parent="#dangerZone">
+                      <div class="accordion-body">
+                        <strong>This is extremely dangerous. Please save all your data.</strong> <p>You will reboot the device.</p>
+                        <button type="button" class="btn btn-danger mt-3" onclick="rebootPi()">Reboot raspberry pi</button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -153,7 +175,7 @@
                     data-mdb-spy="scroll"
                     data-mdb-target="#scrollspy1"
                     data-mdb-offset="0"
-                    class="scrollspy-example"
+                    class="scrollspy-example font-monospace fs-6"
                     id="log"
                     style="max-height: 200px; overflow-y: scroll;"
                   ></div>
@@ -283,5 +305,18 @@
     const timeString = now.toLocaleTimeString(); // returns "11:30:45 AM" (or the local time format)
     const dateTimeString = `${dateString} ${timeString}`; // returns "4/5/2023 11:30:45 AM" (or the local date and time format)
     return dateTimeString
+  }
+  function toggleTheme() {
+    var theme = document.getElementById('theme');
+    if (theme.getAttribute('href') == "{{ url_for('static', filename='css/mdb.min.css') }}") {
+      theme.href = "{{ url_for('static', filename='css/mdb.dark.min.css') }}";
+    } else {
+      theme.href = "{{ url_for('static', filename='css/mdb.min.css') }}";
+    }
+  }
+  function rebootPi() {
+    fetch('/reboot')
+      .then(response => response.text())
+      .then(data => console.log(data));
   }
 </script>

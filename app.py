@@ -1,4 +1,5 @@
 from time import sleep
+import os
 import RPi.GPIO as GPIO
 from flask import Flask, render_template, request
 
@@ -130,6 +131,11 @@ def customMotor4():
     direction = int(request.json['direction'])
     moveOneMotor(MODE4, DIR4, STEP4, float(input_value1), direction)
     return f'Motor 4 moved {input_value1} rotations in direction {direction}'
+
+@app.route('/reboot')
+def reboot():
+    os.system('sudo reboot')
+    return 'Rebooting...'
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
