@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Beerpong: mission control </title>
+	<!-- Font Awesome -->
+    <link
+        href="{{ url_for('static', filename='css/all.min.css') }}"
+        rel="stylesheet"
+    />
+    <!-- Google Fonts -->
+    <link
+        href="{{ url_for('static', filename='css/gf.css') }}?family=Roboto:300,400,500,700&display=swap"
+        rel="stylesheet"
+    />
+    <!-- MDB -->
+    <link
+        href="{{ url_for('static', filename='css/mdb.min.css') }}"
+        rel="stylesheet"
+    />
+	<!-- MDB -->
+    <script
+        type="text/javascript"
+        src="{{ url_for('static', filename='js/mdb.min.js') }}"
+    ></script>
+    <style>
+        body {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          background-color: #F4F4F4;
+        }
+    
+        .card {
+          margin: 10px;
+          padding: 30px;
+          background-color: #FFFFFF;
+          border-radius: 10px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.158);
+        }
+    
+        .btn-group-vertical {
+          width: 100%;
+          margin-top: 10px;
+        }
+      </style>
+    
+    </head>
+    
+    <body>
+      <div class="container">
+        <div class="row">
+          <div class="col">
+            <div class="card">
+              <h2 class="text-center mb-3">Beerpong: mission control</h2>
+              <div class="btn-group-vertical">
+          
+                <button type="button" id="button1" class="btn btn-primary" onclick="move_motor_1and2()">Move Both Motors 1 and 2 {{ millimeter1 }} mm</button>
+
+                <button type="button"  id="button2" class="btn btn-primary" onclick="move_motor3()">Move Motor 3 {{ millimeter3 }} mm</button>
+          
+                <button type="button" id="button3" class="btn btn-primary" onclick="move_motor4()">Move Motor 4 {{ millimeter4 }} mm</button>
+                
+              </div>
+              <button type="button" class="btn btn-danger mt-3 " onclick="debug()">Debug</button>
+            </div>
+          </div>
+          
+          <div class="col">
+            <div class="card">
+              <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">Motor #</th>
+                  <th scope="col">DIR</th>
+                  <th scope="col">STEP</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">1</th>
+                  <td>{{ dirpin1 }}</td>
+                  <td>{{ steppin1 }}</td>
+                </tr>
+                <tr>
+                  <th scope="row">2</th>
+                  <td>{{ dirpin2 }}</td>
+                  <td>{{ steppin2 }}</td>
+                </tr>
+                <tr>
+                  <th scope="row">3</th>
+                  <td>{{ dirpin3 }}</td>
+                  <td>{{ steppin3 }}</td>
+                </tr>
+                <tr>
+                  <th scope="row">4</th>
+                  <td>{{ dirpin4 }}</td>
+                  <td>{{ steppin4 }}</td>
+                </tr>
+              </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="container" id="debugContainer" style="display:none;">
+          <div class="row">
+            <div class="col">
+              <div class="card">
+                <h4 class="text-center mb-3">Manual controls</h4>
+                <div class="form-outline mt-3">
+                  <input type="text" id="form1" class="form-control">
+                  <label class="form-label" for="form1">Enter amount of rotations/mm to move</label>
+                </div>
+                
+                <div class="container">
+                  <div class="row">
+                    <div class="col">
+                      <div class="form-check mt-3">
+                        <input class="form-check-input" type="radio" name="mmRotationRadio" id="millimeterRadio" checked/>
+                        <label class="form-check-label" for="flexRadioDefault2"> millimeters </label>
+                      </div>
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="mmRotationRadio" id="rotationRadio"/>
+                        <label class="form-check-label" for="flexRadioDefault2"> rotations </label>
+                      </div>
+                    </div>
+                    <div class="col">
+                      <div class="form-check mt-3">
+                        <input class="form-check-input" type="radio" name="cwCcwRadio" id="cwRadio" checked/>
+                        <label class="form-check-label" for="flexRadioDefault2"> clockwise </label>
+                      </div>
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="cwCcwRadio" id="ccwRadio"/>
+                        <label class="form-check-label" for="flexRadioDefault2"> counterclockwise </label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="text-center">
+                    <div class="btn-group">
+                      <button type="button" class="btn btn-primary mt-3" onclick="customMotor12()">Send to motor 1 & 2</button>
+                      <button type="button" class="btn btn-primary mt-3" onclick="customMotor3()">Send to motor 3</button>
+                      <button type="button" class="btn btn-primary mt-3" onclick="customMotor4()">Send to motor 4</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="card">
+                <div class="container">
+                  <h4 class="text-center mb-3">Console logs</h4>
+                  <div
+                    data-mdb-spy="scroll"
+                    data-mdb-target="#scrollspy1"
+                    data-mdb-offset="0"
+                    class="scrollspy-example"
+                    id="log"
+                    style="max-height: 200px; overflow-y: scroll;"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </body>
+</html>
+
+<script type="text/javascript" src="{{ url_for('static', filename='js/mdb.min.js') }}"></script>
+<script>
+  CW = 1 
+  CCW = 0 
+  function move_motor_1and2() {
+    document.getElementById("button1").disabed = true;
+    fetch('/move_motor_1and2')
+      .then(response => response.text())
+      .then(data => console.log(data));
+    document.getElementById("button1").disabed = false;
+  }
+
+  function move_motor3() {
+    fetch('/move_motor3')
+      .then(response => response.text())
+      .then(data => console.log(data));
+  }
+
+  function move_motor4() {
+    fetch('/move_motor4')
+      .then(response => response.text())
+      .then(data => console.log(data));
+  }
+
+  function debug() {
+    if(document.getElementById("debugContainer").style.display == "none"){
+      document.getElementById("debugContainer").style.display = "block";
+    }else{
+      document.getElementById("debugContainer").style.display = "none";
+    }
+  }
+  function customMotor12() {
+    if(document.getElementById("millimeterRadio").checked){
+      var input = document.getElementById("form1").value/2;
+    }else{
+      var input = document.getElementById("form1").value;
+    }
+    if(document.getElementById("cwRadio").checked){
+      var direction = CW
+    }else{
+      var direction = CCW
+    }
+    fetch('/customMotor12', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ input: input, direction: direction })
+    })
+    .then(response => response.text())
+    .then(input_value1 => {
+      console.log(input_value1);
+    });
+  }
+
+  function customMotor3() {
+    if(document.getElementById("millimeterRadio").checked){
+      var input = document.getElementById("form1").value/2;
+    }else{
+      var input = document.getElementById("form1").value;
+    }
+    if(document.getElementById("cwRadio").checked){
+      var direction = CW
+    }else{
+      var direction = CCW
+    }
+    fetch('/customMotor3', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ input: input, direction: direction })
+    })
+    .then(response => response.text())
+    .then(input_value1 => {
+      console.log(input_value1);
+    });
+  }
+
+  function customMotor4() {
+    if(document.getElementById("millimeterRadio").checked){
+      var input = document.getElementById("form1").value/2;
+    }else{
+      var input = document.getElementById("form1").value;
+    }
+    if(document.getElementById("cwRadio").checked){
+      var direction = CW
+    }else{
+      var direction = CCW
+    }
+    fetch('/customMotor4', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ input: input, direction: direction })
+    })
+    .then(response => response.text())
+    .then(input_value1 => {
+      console.log(input_value1);
+    });
+  }
+  
+  const logElement = document.getElementById('log');
+
+  console.log = function(message) {
+    const logMessage = document.createElement('div');
+    logMessage.textContent = getDate() + ": " + message;
+    logElement.appendChild(logMessage);
+    logElement.scrollTop = logElement.scrollHeight;
+  }
+  function getDate(){
+    const now = new Date();
+    const dateString = now.toLocaleDateString(); // returns "4/5/2023" (or the local date format)
+    const timeString = now.toLocaleTimeString(); // returns "11:30:45 AM" (or the local time format)
+    const dateTimeString = `${dateString} ${timeString}`; // returns "4/5/2023 11:30:45 AM" (or the local date and time format)
+    return dateTimeString
+  }
+</script>
