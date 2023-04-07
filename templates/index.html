@@ -62,7 +62,7 @@
                 <button type="button" id="button3" class="btn btn-primary" onclick="move_motor4()">Move Motor 4 {{ millimeter4 }} mm</button>
                 
               </div>
-              <button type="button" class="btn btn-danger mt-3 " onclick="debug()">Debug</button>
+              <button type="button" class="btn btn-warning mt-3 " onclick="debug()">Debug</button>
             </div>
           </div>
           
@@ -74,6 +74,7 @@
                   <th scope="col">Motor #</th>
                   <th scope="col">DIR</th>
                   <th scope="col">STEP</th>
+                  <th scope="col">EN</th>
                 </tr>
               </thead>
               <tbody>
@@ -81,21 +82,25 @@
                   <th scope="row">1</th>
                   <td>{{ dirpin1 }}</td>
                   <td>{{ steppin1 }}</td>
+                  <td>{{ enpin1 }}</td>
                 </tr>
                 <tr>
                   <th scope="row">2</th>
                   <td>{{ dirpin2 }}</td>
                   <td>{{ steppin2 }}</td>
+                  <td>{{ enpin2 }}</td>
                 </tr>
                 <tr>
                   <th scope="row">3</th>
                   <td>{{ dirpin3 }}</td>
                   <td>{{ steppin3 }}</td>
+                  <td>{{ enpin3 }}</td>
                 </tr>
                 <tr>
                   <th scope="row">4</th>
                   <td>{{ dirpin4 }}</td>
                   <td>{{ steppin4 }}</td>
+                  <td>{{ enpin4 }}</td>
                 </tr>
               </tbody>
               </table>
@@ -123,6 +128,10 @@
                         <input class="form-check-input" type="radio" name="mmRotationRadio" id="rotationRadio"/>
                         <label class="form-check-label" for="flexRadioDefault2"> rotations </label>
                       </div>
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="mmRotationRadio" id="degreesRadio"/>
+                        <label class="form-check-label" for="flexRadioDefault2"> degrees </label>
+                      </div>
                     </div>
                     <div class="col">
                       <div class="form-check mt-3">
@@ -137,9 +146,25 @@
                   </div>
                   <div class="text-center">
                     <div class="btn-group mt-3">
-                      <button type="button" class="btn btn-primary" onclick="customMotor12()">Send to motor 1 & 2</button>
-                      <button type="button" class="btn btn-primary" onclick="customMotor3()">Send to motor 3</button>
-                      <button type="button" class="btn btn-primary" onclick="customMotor4()">Send to motor 4</button>
+                      <button type="button" class="btn btn-primary" onclick="customMotor(12)">Send to motor 1 & 2</button>
+                      <button type="button" class="btn btn-primary" onclick="customMotor(3)">Send to motor 3</button>
+                      <button type="button" class="btn btn-primary" onclick="customMotor(4)">Send to motor 4</button>
+                    </div>
+                  </div>
+                  <div class="text-center">
+                    <div class="btn-group mt-3">
+                      <button type="button" class="btn btn-primary" onclick="disableMotor(1)">Disable motor 1</button>
+                      <button type="button" class="btn btn-primary" onclick="disableMotor(2)">Disable motor 2</button>
+                      <button type="button" class="btn btn-primary" onclick="disableMotor(3)">Disable motor 3</button>
+                      <button type="button" class="btn btn-primary" onclick="disableMotor(4)">Disable motor 4</button>
+                      <button type="button" class="btn btn-secondary" onclick="disableMotor(1234)">Disable all motors</button>
+                    </div>
+                    <div class="btn-group mt-3">
+                      <button type="button" class="btn btn-primary" onclick="enableMotor(1)">enable motor 1</button>
+                      <button type="button" class="btn btn-primary" onclick="enableMotor(2)">enable motor 2</button>
+                      <button type="button" class="btn btn-primary" onclick="enableMotor(3)">enable motor 3</button>
+                      <button type="button" class="btn btn-primary" onclick="enableMotor(4)">enable motor 4</button>
+                      <button type="button" class="btn btn-secondary" onclick="enableMotor(1234)">Enable all motors</button>
                     </div>
                   </div>
                 </div>
@@ -159,8 +184,11 @@
                     </h2>
                     <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-mdb-parent="#dangerZone">
                       <div class="accordion-body">
-                        <strong>This is extremely dangerous. Please save all your data.</strong> <p>You will reboot the device.</p>
+                        <strong>This is extremely dangerous. Please save all your data.</strong> <p>You will reboot/shutdown the device.</p>
                         <button type="button" class="btn btn-danger mt-3" onclick="rebootPi()">Reboot raspberry pi</button>
+                        <button type="button" class="btn btn-danger mt-3" onclick="shutdownPi()">Power off raspberry pi</button>
+                        <button type="button" class="btn btn-danger mt-3" onclick="rebootImmediately()">Reboot raspberry pi without delay</button>
+                        <button type="button" class="btn btn-info mt-3" onclick="cancelShutdown()">Cancel operation</button>
                       </div>
                     </div>
                   </div>
@@ -219,78 +247,63 @@
       document.getElementById("debugContainer").style.display = "none";
     }
   }
-  function customMotor12() {
+  function customMotor(nr){
+    console.log("request received")
     if(document.getElementById("millimeterRadio").checked){
       var input = document.getElementById("form1").value/2;
-    }else{
+    }else if(document.getElementById("rotationRadio").checked){
       var input = document.getElementById("form1").value;
+    }else{
+      var input = document.getElementById("form1").value/360;
     }
     if(document.getElementById("cwRadio").checked){
       var direction = CW
     }else{
       var direction = CCW
     }
-    fetch('/customMotor12', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ input: input, direction: direction })
-    })
-    .then(response => response.text())
-    .then(input_value1 => {
-      console.log(input_value1);
-    });
+    if(nr == 12){
+      fetch('/customMotor12', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ input: input, direction: direction })
+      })
+      .then(response => response.text())
+      .then(input_value1 => {
+        console.log(input_value1);
+      });
+    }
+    else if(nr == 3){
+      fetch('/customMotor3', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ input: input, direction: direction })
+      })
+      .then(response => response.text())
+      .then(input_value1 => {
+        console.log(input_value1);
+      });
+    }
+    else if(nr == 4){
+      fetch('/customMotor4', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ input: input, direction: direction })
+      })
+      .then(response => response.text())
+      .then(input_value1 => {
+        console.log(input_value1);
+      });
+    }else{
+      console.log("motor nr. not valid");
+    }
   }
 
-  function customMotor3() {
-    if(document.getElementById("millimeterRadio").checked){
-      var input = document.getElementById("form1").value/2;
-    }else{
-      var input = document.getElementById("form1").value;
-    }
-    if(document.getElementById("cwRadio").checked){
-      var direction = CW
-    }else{
-      var direction = CCW
-    }
-    fetch('/customMotor3', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ input: input, direction: direction })
-    })
-    .then(response => response.text())
-    .then(input_value1 => {
-      console.log(input_value1);
-    });
-  }
-
-  function customMotor4() {
-    if(document.getElementById("millimeterRadio").checked){
-      var input = document.getElementById("form1").value/2;
-    }else{
-      var input = document.getElementById("form1").value;
-    }
-    if(document.getElementById("cwRadio").checked){
-      var direction = CW
-    }else{
-      var direction = CCW
-    }
-    fetch('/customMotor4', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ input: input, direction: direction })
-    })
-    .then(response => response.text())
-    .then(input_value1 => {
-      console.log(input_value1);
-    });
-  }
-  
   const logElement = document.getElementById('log');
 
   console.log = function(message) {
@@ -314,8 +327,75 @@
       theme.href = "{{ url_for('static', filename='css/mdb.min.css') }}";
     }
   }
+  function disableMotor(nr) {
+    if(nr==1){
+      fetch('/disable1')
+        .then(response => response.text())
+        .then(data => console.log(data));
+    }else if(nr ==2){
+      fetch('/disable2')
+        .then(response => response.text())
+        .then(data => console.log(data));
+    }else if(nr ==3){
+      fetch('/disable3')
+        .then(response => response.text())
+        .then(data => console.log(data));
+    }else if(nr ==4){
+      fetch('/disable4')
+        .then(response => response.text())
+        .then(data => console.log(data));
+    }else if(nr == 1234){
+      fetch('/disableAll')
+        .then(response => response.text())
+        .then(data => console.log(data));
+    }else{
+      console.log("motor number not valid")
+    }
+  }
+
+  function enableMotor(nr) {
+    if(nr==1){
+      fetch('/enable1')
+        .then(response => response.text())
+        .then(data => console.log(data));
+    }else if(nr ==2){
+      fetch('/enable2')
+        .then(response => response.text())
+        .then(data => console.log(data));
+    }else if(nr ==3){
+      fetch('/enable3')
+        .then(response => response.text())
+        .then(data => console.log(data));
+    }else if(nr ==4){
+      fetch('/enable4')
+        .then(response => response.text())
+        .then(data => console.log(data));
+    }else if(nr == 1234){
+      fetch('/enableAll')
+        .then(response => response.text())
+        .then(data => console.log(data));
+    }else{
+      console.log("motor number not valid")
+    }
+  }
+  
   function rebootPi() {
     fetch('/reboot')
+      .then(response => response.text())
+      .then(data => console.log(data));
+  }
+  function shutdownPi() {
+    fetch('/shutdown')
+      .then(response => response.text())
+      .then(data => console.log(data));
+  }
+  function cancelShutdown() {
+    fetch('/cancelShutdown')
+      .then(response => response.text())
+      .then(data => console.log(data));
+  }
+  function rebootImmediately() {
+    fetch('/rebootImmediately')
       .then(response => response.text())
       .then(data => console.log(data));
   }
